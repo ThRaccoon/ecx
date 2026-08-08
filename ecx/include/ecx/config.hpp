@@ -5,3 +5,10 @@
 #else
 #   define ECX_ENTITY_IS_64BIT 0
 #endif
+
+#if defined(ECX_DISABLE_ASSERT) || defined(NDEBUG)
+#   define ECX_ASSERT(cond, msg) (void(0))
+#else
+#   include <cassert>
+#   define ECX_ASSERT(cond, msg) assert((cond) && (msg))
+#endif
