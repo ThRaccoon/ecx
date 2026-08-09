@@ -1,6 +1,7 @@
 add_executable(tests
     "stub.cpp"
     "containers/sparse_set_tests.cpp"
+    "containers/storage_tests.cpp"
 )
 
 target_link_libraries(tests PRIVATE ecx)

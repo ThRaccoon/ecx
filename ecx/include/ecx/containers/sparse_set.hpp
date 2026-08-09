@@ -50,6 +50,8 @@ namespace ecx::internal
             m_dense[index] = last_handle;
             m_sparse[last_handle] = index;
 
+            on_erase(index);
+
             m_dense.pop_back();
             m_sparse.erase(handle);
         }
@@ -74,6 +76,9 @@ namespace ecx::internal
 
         const_iterator begin() const { return m_dense.begin(); }
         const_iterator end() const { return m_dense.end(); }
+
+    protected:
+        virtual void on_erase(std::size_t index) {}
 
     private:
         std::size_t m_initial_capacity;
