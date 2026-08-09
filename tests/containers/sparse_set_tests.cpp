@@ -25,7 +25,7 @@ namespace
 // constructor
 //
 
-TEST(SparseSetTest, ConstructorWithoutCustomInitialCapacitySetsDefaultInitialCapacity)
+TEST(SparseSetTest, ConstructorDefaultsInitialCapacityWhenNotProvided)
 {
     SparseSet<uint32_t> sparse_set_32;
     SparseSet<uint64_t> sparse_set_64;
@@ -34,7 +34,7 @@ TEST(SparseSetTest, ConstructorWithoutCustomInitialCapacitySetsDefaultInitialCap
     EXPECT_EQ(sparse_set_64.initial_capacity(), SparseSet<uint64_t>::DEFAULT_INITIAL_CAPACITY);
 }
 
-TEST(SparseSetTest, ConstructorWithCustomInitialCapacitySetsCustomInitialCapacity)
+TEST(SparseSetTest, ConstructorSetsInitialCapacityWhenProvided)
 {
     SparseSet<uint32_t> sparse_set_32(100);
     SparseSet<uint64_t> sparse_set_64(100);
@@ -47,27 +47,37 @@ TEST(SparseSetTest, ConstructorWithCustomInitialCapacitySetsCustomInitialCapacit
 // insert
 //
 
-TYPED_TEST(SparseSetFixture, InsertSingleHandleAddsIt)
+TYPED_TEST(SparseSetFixture, InsertAddsHandleToDense)
+{
+    this->sparse_set.insert(1);
+
+    std::vector<TypeParam> result(this->sparse_set.begin(), this->sparse_set.end());
+
+    EXPECT_EQ(result, (std::vector<TypeParam>{1}));
+}
+
+TYPED_TEST(SparseSetFixture, InsertAddsHandleToSparse)
 {
     this->sparse_set.insert(1);
 
     EXPECT_TRUE(this->sparse_set.contains(1));
+}
+
+TYPED_TEST(SparseSetFixture, InsertIncreasesSize)
+{
+    this->sparse_set.insert(1);
+
     EXPECT_EQ(this->sparse_set.size(), 1);
 }
 
-TYPED_TEST(SparseSetFixture, InsertMultipleHandlesAddsAllInInsertionOrder)
+TYPED_TEST(SparseSetFixture, InsertBeyondCapacityGrowsCapacity)
 {
-    this->sparse_set.insert(1);
-    this->sparse_set.insert(2);
-    this->sparse_set.insert(3);
+    for (std::size_t i = 0; i <= this->sparse_set.initial_capacity(); i++)
+    {
+        this->sparse_set.insert(i);
+    }
 
-    EXPECT_TRUE(this->sparse_set.contains(1));
-    EXPECT_TRUE(this->sparse_set.contains(2));
-    EXPECT_TRUE(this->sparse_set.contains(3));
-    EXPECT_EQ(this->sparse_set.size(), 3);
-
-    std::vector<TypeParam> result(this->sparse_set.begin(), this->sparse_set.end());
-    EXPECT_EQ(result, (std::vector<TypeParam>{1, 2, 3}));
+    EXPECT_GT(this->sparse_set.capacity(), this->sparse_set.initial_capacity());
 }
 
 TYPED_TEST(SparseSetFixture, InsertDuplicateHandleAsserts)
@@ -93,60 +103,53 @@ TYPED_TEST(SparseSetFixture, ContainsNonExistingHandleReturnsFalse)
     EXPECT_FALSE(this->sparse_set.contains(1));
 }
 
-TYPED_TEST(SparseSetFixture, ContainsErasedHandleReturnsFalse)
-{
-    this->sparse_set.insert(1);
-    this->sparse_set.erase(1);
-
-    EXPECT_FALSE(this->sparse_set.contains(1));
-}
-
 //
 // erase
 //
 
-TYPED_TEST(SparseSetFixture, EraseSingleHandleRemovesIt)
+TYPED_TEST(SparseSetFixture, EraseRemovesHandleFromDense)
+{
+    this->sparse_set.insert(1);
+    this->sparse_set.erase(1);
+
+    std::vector<TypeParam> result(this->sparse_set.begin(), this->sparse_set.end());
+
+    EXPECT_EQ(result, (std::vector<TypeParam>{}));
+}
+
+TYPED_TEST(SparseSetFixture, EraseRemovesHandleFromSparse)
 {
     this->sparse_set.insert(1);
     this->sparse_set.erase(1);
 
     EXPECT_FALSE(this->sparse_set.contains(1));
+}
+
+TYPED_TEST(SparseSetFixture, EraseDecreasesSize)
+{
+    this->sparse_set.insert(1);
+    this->sparse_set.erase(1);
+
     EXPECT_EQ(this->sparse_set.size(), 0);
 }
 
-TYPED_TEST(SparseSetFixture, EraseLastHandleRemovesIt)
-{
-    this->sparse_set.insert(1);
-    this->sparse_set.insert(2);
-    this->sparse_set.erase(2);
-
-    EXPECT_TRUE(this->sparse_set.contains(1));
-    EXPECT_FALSE(this->sparse_set.contains(2));
-    EXPECT_EQ(this->sparse_set.size(), 1);
-}
-
-TYPED_TEST(SparseSetFixture, EraseNonLastHandleCopiesLastIntoRemovedSlotReindexesLastRemovesOriginalLast)
+TYPED_TEST(SparseSetFixture, EraseNonLastHandleCopiesLastIntoItsSlotAndReindexesLast)
 {
     this->sparse_set.insert(1);
     this->sparse_set.insert(2);
     this->sparse_set.insert(3);
     this->sparse_set.erase(1);
 
-    // Proves 1 was removed
-    EXPECT_FALSE(this->sparse_set.contains(1));
-    EXPECT_TRUE(this->sparse_set.contains(2));
-    EXPECT_TRUE(this->sparse_set.contains(3));
-    EXPECT_EQ(this->sparse_set.size(), 2);
-
-    // Proves last was copied into 1's slot
+    // In dense last (3) now sits where erased (1) was
     std::vector<TypeParam> result(this->sparse_set.begin(), this->sparse_set.end());
+
     EXPECT_EQ(result, (std::vector<TypeParam>{3, 2}));
 
-    // Proves last was reindexed
+    // In sparse last (3) was correctly reindexed
     this->sparse_set.erase(3);
+
     EXPECT_TRUE(this->sparse_set.contains(2));
     EXPECT_FALSE(this->sparse_set.contains(3));
-    EXPECT_EQ(this->sparse_set.size(), 1);
 }
 
 TYPED_TEST(SparseSetFixture, EraseNonExistingHandleAsserts)
@@ -158,14 +161,18 @@ TYPED_TEST(SparseSetFixture, EraseNonExistingHandleAsserts)
 // clear
 //
 
-TYPED_TEST(SparseSetFixture, ClearEmptyNoOp)
+TYPED_TEST(SparseSetFixture, ClearEmptiesDense)
 {
+    this->sparse_set.insert(1);
+    this->sparse_set.insert(2);
     this->sparse_set.clear();
 
-    EXPECT_EQ(this->sparse_set.size(), 0);
+    std::vector<TypeParam> result(this->sparse_set.begin(), this->sparse_set.end());
+
+    EXPECT_EQ(result, (std::vector<TypeParam>{}));
 }
 
-TYPED_TEST(SparseSetFixture, ClearNonEmptyEmptiesIt)
+TYPED_TEST(SparseSetFixture, ClearEmptiesSparse)
 {
     this->sparse_set.insert(1);
     this->sparse_set.insert(2);
@@ -173,12 +180,11 @@ TYPED_TEST(SparseSetFixture, ClearNonEmptyEmptiesIt)
 
     EXPECT_FALSE(this->sparse_set.contains(1));
     EXPECT_FALSE(this->sparse_set.contains(2));
-    EXPECT_EQ(this->sparse_set.size(), 0);
 }
 
 TYPED_TEST(SparseSetFixture, ClearDoesNotShrinkCapacity)
 {
-    for (std::size_t i = 0; i <= this->sparse_set.DEFAULT_INITIAL_CAPACITY; i++)
+    for (std::size_t i = 0; i <= this->sparse_set.initial_capacity(); i++)
     {
         this->sparse_set.insert(i);
     }
@@ -193,15 +199,18 @@ TYPED_TEST(SparseSetFixture, ClearDoesNotShrinkCapacity)
 // reset
 //
 
-TYPED_TEST(SparseSetFixture, ResetEmptyWithinInitialCapacityNoOp)
+TYPED_TEST(SparseSetFixture, ResetEmptiesDense)
 {
+    this->sparse_set.insert(1);
+    this->sparse_set.insert(2);
     this->sparse_set.reset();
 
-    EXPECT_EQ(this->sparse_set.size(), 0);
-    EXPECT_EQ(this->sparse_set.capacity(), this->sparse_set.initial_capacity());
+    std::vector<TypeParam> result(this->sparse_set.begin(), this->sparse_set.end());
+
+    EXPECT_EQ(result, (std::vector<TypeParam>{}));
 }
 
-TYPED_TEST(SparseSetFixture, ResetNonEmptyWithinInitialCapacityEmptiesIt)
+TYPED_TEST(SparseSetFixture, ResetEmptiesSparse)
 {
     this->sparse_set.insert(1);
     this->sparse_set.insert(2);
@@ -209,60 +218,18 @@ TYPED_TEST(SparseSetFixture, ResetNonEmptyWithinInitialCapacityEmptiesIt)
 
     EXPECT_FALSE(this->sparse_set.contains(1));
     EXPECT_FALSE(this->sparse_set.contains(2));
-    EXPECT_EQ(this->sparse_set.size(), 0);
-    EXPECT_EQ(this->sparse_set.capacity(), this->sparse_set.initial_capacity());
 }
 
-TYPED_TEST(SparseSetFixture, ResetEmptyExceedsInitialCapacityShrinksItToInitialCapacity)
+TYPED_TEST(SparseSetFixture, ResetShrinksCapacityToInitialCapacity)
 {
-    for (std::size_t i = 0; i <= this->sparse_set.DEFAULT_INITIAL_CAPACITY; i++)
+    for (std::size_t i = 0; i <= this->sparse_set.initial_capacity(); i++)
     {
         this->sparse_set.insert(i);
     }
 
-    EXPECT_GT(this->sparse_set.capacity(), this->sparse_set.DEFAULT_INITIAL_CAPACITY);
-
-    this->sparse_set.clear();
-    this->sparse_set.reset();
-
-    EXPECT_EQ(this->sparse_set.capacity(), this->sparse_set.initial_capacity());
-}
-
-TYPED_TEST(SparseSetFixture, ResetNonEmptyExceedsInitialCapacityEmptiesItAndShrinksItToInitialCapacity)
-{
-    for (std::size_t i = 0; i <= this->sparse_set.DEFAULT_INITIAL_CAPACITY; i++)
-    {
-        this->sparse_set.insert(i);
-    }
-
-    EXPECT_GT(this->sparse_set.capacity(), this->sparse_set.DEFAULT_INITIAL_CAPACITY);
+    EXPECT_GT(this->sparse_set.capacity(), this->sparse_set.initial_capacity());
 
     this->sparse_set.reset();
 
-    for (std::size_t i = 0; i <= this->sparse_set.DEFAULT_INITIAL_CAPACITY; i++)
-    {
-        EXPECT_FALSE(this->sparse_set.contains(i));
-    }
-    EXPECT_EQ(this->sparse_set.size(), 0);
     EXPECT_EQ(this->sparse_set.capacity(), this->sparse_set.initial_capacity());
-}
-
-//
-// begin / end
-//
-
-TYPED_TEST(SparseSetFixture, BeginEndEmptyBeginEqualsEnd)
-{
-    EXPECT_EQ(this->sparse_set.begin(), this->sparse_set.end());
-}
-
-TYPED_TEST(SparseSetFixture, BeginEndNonEmptyIteratesInsertedHandlesInInsertionOrder)
-{
-    this->sparse_set.insert(1);
-    this->sparse_set.insert(2);
-    this->sparse_set.insert(3);
-
-    std::vector<TypeParam> result(this->sparse_set.begin(), this->sparse_set.end());
-
-    EXPECT_EQ(result, (std::vector<TypeParam>{1, 2, 3}));
 }
