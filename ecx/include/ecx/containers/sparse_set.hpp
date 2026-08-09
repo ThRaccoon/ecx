@@ -13,7 +13,7 @@ namespace ecx::internal
     {
     public:
         using handle_type = Handle;
-        using iterator = typename std::vector<handle_type>::const_iterator;
+        using const_iterator = typename std::vector<handle_type>::const_iterator;
 
         static constexpr std::size_t DEFAULT_INITIAL_CAPACITY = 32;
 
@@ -72,8 +72,8 @@ namespace ecx::internal
         std::size_t capacity() const { return m_dense.capacity(); }
         std::size_t initial_capacity() const { return m_initial_capacity; }
 
-        iterator begin() { return m_dense.begin(); }
-        iterator end() { return m_dense.end(); }
+        const_iterator begin() const { return m_dense.begin(); }
+        const_iterator end() const { return m_dense.end(); }
 
     private:
         std::size_t m_initial_capacity;
