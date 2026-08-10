@@ -6,6 +6,13 @@
 #   define ECX_ENTITY_IS_64BIT 0
 #endif
 
+#ifdef ECX_ENABLE_WARNINGS
+#   include <iostream>
+#   define ECX_WARN(msg) (std::cerr << msg << '\n')
+#else
+#   define ECX_WARN(msg) (void(0))
+#endif
+
 #if defined(ECX_DISABLE_ASSERT) || defined(NDEBUG)
 #   define ECX_ASSERT(cond, msg) (void(0))
 #else
