@@ -35,6 +35,22 @@ TYPED_TEST(StorageFixture, InsertAddsElementToElements)
 }
 
 //
+// get
+//
+
+TYPED_TEST(StorageFixture, GetExistingHandleReturnsElement)
+{
+    this->storage.insert(1, 23);
+
+    EXPECT_EQ(this->storage.get(1), 23);
+}
+
+TYPED_TEST(StorageFixture, GetNonExistingHandleAsserts)
+{
+    EXPECT_DEATH(this->storage.get(1), "");
+}
+
+//
 // clear
 //
 

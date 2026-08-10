@@ -30,6 +30,16 @@ namespace ecx::internal
             m_elements.push_back(std::move(element));
         }
 
+        element_type &get(handle_type handle)
+        {
+            return m_elements[Base::index_of(handle)];
+        }
+
+        const element_type &get(handle_type handle) const
+        {
+            return m_elements[Base::index_of(handle)];
+        }
+
         void clear()
         {
             Base::clear();
