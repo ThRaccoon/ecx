@@ -80,6 +80,14 @@ namespace ecx::internal
     protected:
         virtual void on_erase(std::size_t index) {}
 
+        std::size_t index_of(handle_type handle) const
+        {
+            auto it = m_sparse.find(handle);
+            ECX_ASSERT(it != m_sparse.end(), "SparseSet::index_of: handle does not exist");
+
+            return it->second;
+        }
+
     private:
         std::size_t m_initial_capacity;
 
