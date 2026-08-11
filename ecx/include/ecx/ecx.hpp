@@ -6,3 +6,4 @@
 #include "ecx/containers/storage.hpp"
 #include "ecx/entity/entity_manager.hpp"
 #include "ecx/component/component_manager.hpp"
+#include "ecx/coordinator.hpp"
