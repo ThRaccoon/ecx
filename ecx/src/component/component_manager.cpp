@@ -10,11 +10,11 @@ namespace ecx::internal
 
     void ComponentManager::remove_all_by_entity(Entity entity)
     {
-        for (const auto &storage : m_storages)
+        for (std::size_t i = 0; i < m_storages.size(); i++)
         {
-            if (storage->contains(entity))
+            if (m_storages[i]->contains(entity))
             {
-                storage->erase(entity);
+                m_pending_remove.push_back(std::make_pair(i, entity));
             }
         }
     }
