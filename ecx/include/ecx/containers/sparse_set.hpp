@@ -70,6 +70,8 @@ namespace ecx::internal
             std::unordered_map<handle_type, std::size_t>().swap(m_sparse);
         }
 
+        bool empty() const { return m_dense.empty(); }
+
         std::size_t size() const { return m_dense.size(); }
         std::size_t capacity() const { return m_dense.capacity(); }
         std::size_t initial_capacity() const { return m_initial_capacity; }
