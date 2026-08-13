@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ecx/types.hpp"
+#include "ecx/core/types.hpp"
 #include "ecx/containers/sparse_set.hpp"
 
 namespace ecx::internal

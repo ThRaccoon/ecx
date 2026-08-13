@@ -8,8 +8,8 @@
 #include <utility>
 #include <vector>
 
-#include "ecx/config.hpp"
-#include "ecx/types.hpp"
+#include "ecx/core/config.hpp"
+#include "ecx/core/types.hpp"
 #include "ecx/containers/sparse_set.hpp"
 #include "ecx/containers/storage.hpp"
 

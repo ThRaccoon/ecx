@@ -1,5 +1,5 @@
 add_executable(examples
-    "stub.cpp"
+    "examples.cpp"
 )
 
 target_link_libraries(examples PRIVATE ecx)

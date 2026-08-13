@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-#include "ecx/config.hpp"
+#include "ecx/core/config.hpp"
 
 namespace ecx
 {

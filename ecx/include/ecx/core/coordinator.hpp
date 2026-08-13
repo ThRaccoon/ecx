@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ecx/types.hpp"
+#include "ecx/core/types.hpp"
 #include "ecx/entity/entity_manager.hpp"
 #include "ecx/component/component_manager.hpp"
 

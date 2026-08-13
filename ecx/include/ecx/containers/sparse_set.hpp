@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "ecx/config.hpp"
+#include "ecx/core/config.hpp"
 
 namespace ecx::internal
 {

@@ -1,5 +1,5 @@
 add_executable(tests
-    "stub.cpp"
+    "tests.cpp"
     "containers/sparse_set_tests.cpp"
     "containers/storage_tests.cpp"
 )

@@ -1,4 +1,4 @@
-#include "ecx/coordinator.hpp"
+#include "ecx/core/coordinator.hpp"
 
 namespace ecx
 {
