@@ -64,9 +64,9 @@ namespace ecx::internal
         }
         else
         {
-            for (Entity e : m_pending_destroy)
+            for (Entity entity : m_pending_destroy)
             {
-                m_entities.erase(e);
+                m_entities.erase(entity);
             }
 
             m_pending_destroy.clear();
