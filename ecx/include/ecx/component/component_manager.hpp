@@ -1,8 +1,8 @@
 #pragma once
 
 #include <cstddef>
+#include <limits>
 #include <memory>
-#include <numeric>
 #include <typeindex>
 #include <unordered_map>
 #include <utility>
@@ -46,6 +46,9 @@ namespace ecx::internal
             if (index == INVALID_STORAGE_INDEX)
             {
                 ECX_WARN("ComponentManager::add: component type not registered, auto registering");
+
+                register_storage_index<Component>();
+                index = find_storage_index<Component>();
                 m_storages.push_back(std::make_unique<Storage<Entity, Component>>());
             }
 
@@ -97,6 +100,28 @@ namespace ecx::internal
         }
 
         template <typename Component>
+        const Component *get(Entity entity) const
+        {
+            std::size_t index = find_storage_index<Component>();
+
+            if (index == INVALID_STORAGE_INDEX)
+            {
+                ECX_WARN("ComponentManager::get: component type not registered");
+                return nullptr;
+            }
+
+            auto *storage = static_cast<Storage<Entity, Component> *>(m_storages[index].get());
+
+            if (!storage->contains(entity))
+            {
+                ECX_WARN("ComponentManager::get: entity does not have this component");
+                return nullptr;
+            }
+
+            return &storage->get(entity);
+        }
+
+        template <typename Component>
         void remove(Entity entity)
         {
             std::size_t index = find_storage_index<Component>();
@@ -114,6 +139,20 @@ namespace ecx::internal
             }
 
             m_pending_remove.push_back(std::make_pair(index, entity));
+        }
+
+        template <typename Component>
+        void remove_all_by_type()
+        {
+            std::size_t index = find_storage_index<Component>();
+
+            if (index == INVALID_STORAGE_INDEX)
+            {
+                ECX_WARN("ComponentManager::remove_all_by_type: component type not registered");
+                return;
+            }
+
+            m_storages_pending_clear.push_back(index);
         }
 
         void remove_all_by_entity(Entity entity);
@@ -158,6 +197,7 @@ namespace ecx::internal
 
         std::vector<std::unique_ptr<SparseSet<Entity>>> m_storages;
         std::vector<std::pair<std::size_t, Entity>> m_pending_remove;
+        std::vector<std::size_t> m_storages_pending_clear;
         std::unordered_map<std::type_index, std::size_t> m_type_to_index;
     };
 }

@@ -32,6 +32,7 @@ namespace ecx::internal
 
             std::vector<std::unique_ptr<SparseSet<Entity>>>().swap(m_storages);
             std::vector<std::pair<std::size_t, Entity>>().swap(m_pending_remove);
+            std::vector<std::size_t>().swap(m_storages_pending_clear);
             std::unordered_map<std::type_index, std::size_t>().swap(m_type_to_index);
         }
         else if (m_remove_all_flag)
@@ -42,15 +43,25 @@ namespace ecx::internal
             }
 
             m_pending_remove.clear();
+            m_storages_pending_clear.clear();
         }
         else
         {
+            for (const auto &index : m_storages_pending_clear)
+            {
+                m_storages[index]->clear();
+            }
+
             for (const auto &[index, entity] : m_pending_remove)
             {
-                m_storages[index]->erase(entity);
+                if (m_storages[index]->contains(entity))
+                {
+                    m_storages[index]->erase(entity);
+                }
             }
 
             m_pending_remove.clear();
+            m_storages_pending_clear.clear();
         }
 
         m_reset_flag = false;
