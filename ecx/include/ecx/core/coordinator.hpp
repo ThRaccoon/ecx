@@ -1,5 +1,7 @@
 #pragma once
 
+#include <utility>
+
 #include "ecx/core/types.hpp"
 #include "ecx/entity/entity_manager.hpp"
 #include "ecx/component/component_manager.hpp"
@@ -25,7 +27,7 @@ namespace ecx
         template <typename Component>
         void add_component(Entity entity, Component component)
         {
-            m_component_manager.add<Component>(entity, component);
+            m_component_manager.add<Component>(entity, std::move(component));
         }
 
         template <typename Component>
@@ -41,10 +43,24 @@ namespace ecx
         }
 
         template <typename Component>
+        const Component *get_component(Entity entity) const
+        {
+            return m_component_manager.get<Component>(entity);
+        }
+
+        template <typename Component>
         void remove_component(Entity entity)
         {
             m_component_manager.remove<Component>(entity);
         }
+
+        template <typename Component>
+        void remove_all_components_by_type()
+        {
+            m_component_manager.remove_all_by_type<Component>();
+        }
+
+        void remove_all_components_by_entity(Entity entity);
 
         // Shared
         void flush();

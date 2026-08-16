@@ -25,6 +25,12 @@ namespace ecx
         m_component_manager.remove_all();
     }
 
+    // Component
+    void Coordinator::remove_all_components_by_entity(Entity entity)
+    {
+        m_component_manager.remove_all_by_entity(entity);
+    }
+
     // Shared
     void Coordinator::flush()
     {
