@@ -2,6 +2,7 @@
 
 #include "ecx/core/config.hpp"
 #include "ecx/core/types.hpp"
+#include "ecx/entity/entity_traits.hpp"
 #include "ecx/containers/sparse_set.hpp"
 #include "ecx/containers/storage.hpp"
 #include "ecx/entity/entity_manager.hpp"
